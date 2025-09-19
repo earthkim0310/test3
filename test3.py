@@ -16,35 +16,24 @@ import time
 import numpy as np
 import streamlit as st
 
+# matplotlib 백엔드 설정 (Streamlit Cloud 호환)
+import os
+os.environ['MPLBACKEND'] = 'Agg'
+
 import matplotlib
 matplotlib.use("Agg")  # 서버/클라우드 환경
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 
-# 한글 폰트 설정
-import platform
-system = platform.system()
-
-if system == 'Darwin':  # macOS
-    plt.rcParams['font.family'] = ['AppleGothic', 'Arial Unicode MS']
-elif system == 'Windows':
-    plt.rcParams['font.family'] = ['Malgun Gothic', 'Arial Unicode MS']
-else:  # Linux
-    plt.rcParams['font.family'] = ['DejaVu Sans', 'Arial Unicode MS']
-
+# 폰트 설정 (Streamlit Cloud 호환)
+plt.rcParams['font.family'] = ['DejaVu Sans', 'Arial', 'sans-serif']
 plt.rcParams['axes.unicode_minus'] = False  # 마이너스 기호 깨짐 방지
 
 # 한글 폰트가 없을 경우 영어로 대체
 def safe_korean_text(korean_text, english_text):
     """한글 폰트가 없을 경우 영어로 대체"""
-    try:
-        # 한글 폰트 테스트
-        fig, ax = plt.subplots(figsize=(1, 1))
-        ax.text(0.5, 0.5, korean_text, ha='center', va='center')
-        plt.close(fig)
-        return korean_text
-    except:
-        return english_text
+    # Streamlit Cloud에서는 한글 폰트가 제한적이므로 영어 사용
+    return english_text
 
 # ----------------------------- Constants -----------------------------
 G = 6.67430e-11  # m^3 kg^-1 s^-2
@@ -278,10 +267,7 @@ with plot_container.container():
 # ----------------------------- Autorefresh when playing -----------------------------
 # 재생 중일 때만 주기적 리렌더링 (100ms)
 if st.session_state.playing:
-    time.sleep(0.1)  # 100ms 대기
-    # plot_container를 사용하여 애니메이션 효과 구현
-    plot_container.empty()
-    # ScriptRunContext 경고는 무시해도 됨 (기능에 영향 없음)
+    # Streamlit Cloud에서 안정적인 애니메이션을 위해 자동 새로고침 사용
     st.rerun()
 
 # ----------------------------- Notes -----------------------------
