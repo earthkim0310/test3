@@ -19,6 +19,32 @@ import streamlit as st
 import matplotlib
 matplotlib.use("Agg")  # 서버/클라우드 환경
 import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
+
+# 한글 폰트 설정
+import platform
+system = platform.system()
+
+if system == 'Darwin':  # macOS
+    plt.rcParams['font.family'] = ['AppleGothic', 'Arial Unicode MS']
+elif system == 'Windows':
+    plt.rcParams['font.family'] = ['Malgun Gothic', 'Arial Unicode MS']
+else:  # Linux
+    plt.rcParams['font.family'] = ['DejaVu Sans', 'Arial Unicode MS']
+
+plt.rcParams['axes.unicode_minus'] = False  # 마이너스 기호 깨짐 방지
+
+# 한글 폰트가 없을 경우 영어로 대체
+def safe_korean_text(korean_text, english_text):
+    """한글 폰트가 없을 경우 영어로 대체"""
+    try:
+        # 한글 폰트 테스트
+        fig, ax = plt.subplots(figsize=(1, 1))
+        ax.text(0.5, 0.5, korean_text, ha='center', va='center')
+        plt.close(fig)
+        return korean_text
+    except:
+        return english_text
 
 # ----------------------------- Constants -----------------------------
 G = 6.67430e-11  # m^3 kg^-1 s^-2
@@ -204,11 +230,11 @@ with plot_container.container():
         ax1.plot((t - T_curr) / DAY, vr)  # 현재 시점을 0으로 이동한 로컬 좌표(일)
         ax1.axvline(0, lw=1.2, ls=":")
         ax1.axhline(0, lw=1.0, ls=":")
-        ax1.set_xlabel("현재시점 기준 시간 (일)")
-        ax1.set_ylabel("시선속도 v_r (m/s)")
+        ax1.set_xlabel(safe_korean_text("현재시점 기준 시간 (일)", "Time from current moment (days)"))
+        ax1.set_ylabel(safe_korean_text("시선속도 v_r (m/s)", "Radial velocity v_r (m/s)"))
         ax1.set_title(f"K = {K:,.2f} m/s, P = {P_days:.2f} d")
         fig1.tight_layout()
-        st.pyplot(fig1, use_container_width=True)
+        st.pyplot(fig1, width='stretch')
 
     # 2) Spectrum schematic — 한 줄의 흡수선 이동 (현재 시점 속도 기반)
     with col2:
@@ -223,12 +249,13 @@ with plot_container.container():
         ax2.axvline(lambda_shift * 1e9, ymin=0, ymax=1, lw=2)       # 이동선
         ax2.set_xlim(650, 662)
         ax2.set_ylim(0.9, 1.1)
-        ax2.set_xlabel("파장 (nm)")
+        ax2.set_xlabel(safe_korean_text("파장 (nm)", "Wavelength (nm)"))
         ax2.set_yticks([])
-        direction = "청색편이" if v_now < 0 else ("적색편이" if v_now > 0 else "무편이")
+        direction = safe_korean_text("청색편이" if v_now < 0 else ("적색편이" if v_now > 0 else "무편이"), 
+                                   "Blueshift" if v_now < 0 else ("Redshift" if v_now > 0 else "No shift"))
         ax2.set_title(f"v_now = {v_now:,.2f} m/s → {direction}\nΔλ ≈ {(lambda_shift - lambda0)*1e12:.3f} pm")
         fig2.tight_layout()
-        st.pyplot(fig2, use_container_width=True)
+        st.pyplot(fig2, width='stretch')
 
     # 3) Orbit view (투영) + 현재 위치 마커
     with col3:
@@ -243,10 +270,10 @@ with plot_container.container():
         ax3.plot([0], [0], marker="*", markersize=12)  # 항성
         ax3.plot([x_now], [y_now], marker="o")  # 행성 현재 위치
         ax3.set_aspect("equal", adjustable="box")
-        ax3.set_title(f"i = {inc_deg}° (원형/타원 투영)")
+        ax3.set_title(f"i = {inc_deg}° {safe_korean_text('(원형/타원 투영)', '(Circular/Elliptical Projection)')}")
         ax3.set_xticks([]); ax3.set_yticks([])
         fig3.tight_layout()
-        st.pyplot(fig3, use_container_width=True)
+        st.pyplot(fig3, width='stretch')
 
 # ----------------------------- Autorefresh when playing -----------------------------
 # 재생 중일 때만 주기적 리렌더링 (100ms)
